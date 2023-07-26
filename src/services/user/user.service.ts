@@ -52,10 +52,19 @@ export const updateUserDb = async (userId: number, userPayload: any) => {
 };
 export const deleteUserDb = async (userId: number) => {
   try {
-    const user = await prisma.user.delete({
-      where: { id: userId },
-    });
-    return user;
+    const [profile, post, user] = await prisma.$transaction([
+      prisma.profile.delete({
+        where: { userId: userId },
+      }),
+      prisma.post.deleteMany({
+        where: { authorId: userId },
+      }),
+      prisma.user.delete({
+        where: { id: userId },
+      }),
+    ]);
+
+    return { user, profile, post };
   } catch (error) {
     throw error;
   }
