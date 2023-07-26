@@ -1,8 +1,42 @@
 import { prisma } from "../../database";
 
-export const getPostsDb = async () => {
+// localhost:8888/posts?limit=5&page=1&sort={"title":"desc"}&search=asas@gmail.com
+// { author: { email: { contains: query.search } } },
+export const getPostsDb = async (query: any) => {
   try {
-    const posts = await prisma.post.findMany({
+    const allowedFields = ["title", "content", { author: ["name", "email"] }];
+    const whereCondition: any = [];
+    allowedFields.forEach((field: any) => {
+      if (typeof field === "string") {
+        whereCondition.push({ [field]: { contains: query.search } });
+      }
+      if (typeof field === "object") {
+        const [keys] = JSON.parse(JSON.stringify(Object.keys(field)));
+        const subFieldValues = field[keys];
+        subFieldValues.forEach((subField: any) => {
+          whereCondition.push({
+            [keys]: {
+              [subField]: {
+                contains: query.search,
+              },
+            },
+          });
+        });
+      }
+    });
+    const orderByCondition = JSON.parse(query.sort);
+    const page = parseInt(query.page);
+    const limit = parseInt(query.limit);
+    const skip = (page - 1) * limit;
+    const apiQuery: any = {
+      skip: skip,
+      take: limit,
+      where: { OR: whereCondition },
+      orderBy: orderByCondition,
+      //  count using aggregate
+      // _count: {
+      //   _all: true,
+      // },
       include: {
         author: {
           select: {
@@ -11,8 +45,23 @@ export const getPostsDb = async () => {
           },
         },
       },
-    });
-    return posts;
+    };
+    const [posts, count] = await Promise.all([
+      prisma.post.findMany(apiQuery),
+      prisma.post.count({ where: { OR: whereCondition } }),
+    ]);
+    // or
+    // delete apiQuery["include"];
+    // const count = await prisma.post.count(apiQuery);
+    console.log("coutn", count);
+    const pagination = {
+      count,
+      page,
+      limit,
+      skip,
+      availablePosts: posts.length,
+    };
+    return { data: posts, pagination };
   } catch (error) {
     throw error;
   }

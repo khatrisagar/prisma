@@ -8,7 +8,8 @@ import {
 
 export const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await getPostsDb();
+    const query = req.query;
+    const posts = await getPostsDb(query);
     res.json(posts);
   } catch (error) {
     res.status(500).json(error);
