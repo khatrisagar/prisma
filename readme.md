@@ -13,6 +13,20 @@ $ npx prisma migrate dev --name init
 # prisma client
 
 ```bash
-$
-npm install @prisma/client
+$ npm install @prisma/client
 ```
+
+# database queries in prisma
+
+findMany
+findFirst
+findFirstOrThrow
+findUnique
+findUniqueOrThrow
+create
+update
+upsert
+delete
+createMany
+updateMany
+deleteMany

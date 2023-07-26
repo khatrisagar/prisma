@@ -6,8 +6,10 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("aaaaa");
 });
-import { userRoutes } from "./routes";
+import { userRoutes, postRoutes, profileRoutes } from "./routes";
 app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
+app.use("/profile", profileRoutes);
 
 app.listen(PORT, () => {
   console.log(`Listening on ${PORT}`);

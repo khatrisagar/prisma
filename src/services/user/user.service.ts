@@ -1,10 +1,29 @@
-import { PrismaClient } from "@prisma/client";
-
-export const prisma = new PrismaClient();
+import { prisma } from "../../database";
 
 export const getUsersDb = async () => {
   try {
     const users = await prisma.user.findMany();
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSingleUserDb = async (userId: number) => {
+  try {
+    const users = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { profile: true, post: true },
+    });
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserWithPostDb = async () => {
+  try {
+    const users = await prisma.user.findMany({ include: { post: true } });
     return users;
   } catch (error) {
     throw error;
